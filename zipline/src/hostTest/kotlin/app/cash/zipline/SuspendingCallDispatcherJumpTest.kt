@@ -48,7 +48,7 @@ class SuspendingCallDispatcherJumpTest {
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun happyCode() = runTest {
+  fun callSuspendFunctionFromAnotherDispatcher() = runTest {
     val echoService = withContext(dispatcher) {
       zipline.quickJs.evaluate("testing.app.cash.zipline.testing.prepareSuspendingJsBridges()")
       zipline.quickJs.evaluate("testing.app.cash.zipline.testing.unblockSuspendingJs()")
