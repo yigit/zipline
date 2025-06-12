@@ -30,6 +30,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SuspendingCallDispatcherJumpTest {
   private val dispatcher = singleThreadCoroutineDispatcher(
     name = "suspendingTest",
@@ -37,13 +38,14 @@ class SuspendingCallDispatcherJumpTest {
   private val zipline = Zipline.create(dispatcher)
 
   @BeforeTest
-  fun setUp() = runBlocking<Unit>(dispatcher) {
+  fun setUp() = runBlocking(dispatcher) {
     zipline.loadTestingJs()
   }
 
   @AfterTest
-  fun tearDown() = runBlocking<Unit>(dispatcher) {
+  fun tearDown() = runBlocking(dispatcher) {
     zipline.close()
+    dispatcher.close()
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
