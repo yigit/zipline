@@ -155,7 +155,7 @@ internal class OutboundCallHandler(
     resultOrCallbackSerializer: ResultOrCallbackSerializer<*>,
     suspendCallbackSerializer: KSerializer<*>,
     vararg args: Any?,
-  ): Any? {
+  ): Any? = withContext(endpoint.scope.coroutineContext) {
     endpoint.scope.ensureActive()
 
     check(!serviceState.closed) {
@@ -180,9 +180,8 @@ internal class OutboundCallHandler(
     suspendCallback.externalCall = externalCall
     suspendCallback.callStart = endpoint.eventListener.callStart(externalCall)
 
-    val resultOrCallbackJson = withContext(endpoint.scope.coroutineContext) {
-      endpoint.outboundChannel.call(externalCall.encodedCall)
-    }
+    val resultOrCallbackJson = endpoint.outboundChannel.call(externalCall.encodedCall)
+
     val encodedResultOrCallback = endpoint.withTakeScope(scope) {
       endpoint.callCodec.decodeResultOrCallback(resultOrCallbackSerializer, resultOrCallbackJson)
     }
@@ -191,7 +190,7 @@ internal class OutboundCallHandler(
     // the current coroutine until the called function completes.
     val cancelCallback = encodedResultOrCallback.value.callback
     if (cancelCallback != null) {
-      return suspendCancellableCoroutine { continuation ->
+      return@withContext suspendCancellableCoroutine { continuation ->
         suspendCallback.continuation = continuation
         endpoint.incompleteContinuations += continuation
         continuation.invokeOnCancellation {
@@ -213,7 +212,7 @@ internal class OutboundCallHandler(
 
     endpoint.eventListener.callEnd(externalCall, callResult, suspendCallback.callStart)
 
-    return callResult.result
+    callResult.result
       .withApiMismatchMessage(function)
       .getOrThrow()
   }
