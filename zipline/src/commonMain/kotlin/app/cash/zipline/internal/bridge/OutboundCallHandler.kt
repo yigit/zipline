@@ -27,6 +27,7 @@ import kotlin.coroutines.Continuation
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 
 /**
@@ -179,7 +180,10 @@ internal class OutboundCallHandler(
     suspendCallback.externalCall = externalCall
     suspendCallback.callStart = endpoint.eventListener.callStart(externalCall)
 
-    val resultOrCallbackJson = endpoint.outboundChannel.call(externalCall.encodedCall)
+    val resultOrCallbackJson = withContext(endpoint.scope.coroutineContext) {
+      endpoint.outboundChannel.call(externalCall.encodedCall)
+    }
+
     val encodedResultOrCallback = endpoint.withTakeScope(scope) {
       endpoint.callCodec.decodeResultOrCallback(resultOrCallbackSerializer, resultOrCallbackJson)
     }
