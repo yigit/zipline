@@ -34,6 +34,7 @@ import kotlinx.coroutines.withContext
 class SuspendingCallDispatcherJumpTest {
   private val dispatcher = singleThreadCoroutineDispatcher(
     name = "suspendingTest",
+    stackSize = 8 * 1024 * 1024
   )
   private val zipline = Zipline.create(dispatcher)
 
