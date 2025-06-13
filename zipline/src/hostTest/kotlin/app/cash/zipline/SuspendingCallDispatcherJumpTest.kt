@@ -36,10 +36,12 @@ class SuspendingCallDispatcherJumpTest {
     name = "suspendingTest",
     stackSize = 8 * 1024 * 1024
   )
-  private val zipline = Zipline.create(dispatcher)
+  private lateinit var zipline: Zipline
 
   @BeforeTest
   fun setUp() = runBlocking(dispatcher) {
+    // creating this early triggers a stackoverflow exception on android, not sure why.
+    zipline = Zipline.create(dispatcher)
     zipline.loadTestingJs()
   }
 
